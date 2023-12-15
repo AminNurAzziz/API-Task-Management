@@ -7,7 +7,8 @@ import {
     Patch,
     Post,
     Query,
-    UseGuards,
+    // UseGuards,
+    applyDecorators,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTasksDto } from './dto/create-tasks.dto';
@@ -17,9 +18,11 @@ import { Task } from './tasks.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { User } from 'src/auth/user.entity';
+const guards = process.env.STAGE === 'dev' ? [] : [AuthGuard];
 
 @Controller('tasks')
-@UseGuards(AuthGuard())
+@applyDecorators(...guards)
+// @UseGuards(process.env.STAGE === 'dev' ? undefined : AuthGuard())
 export class TasksController {
     constructor(private tasksService: TasksService) {}
 
@@ -41,6 +44,11 @@ export class TasksController {
         @Body() createTaskDto: CreateTasksDto,
         @GetUser() user: User,
     ): Promise<Task> {
+        console.log(
+            'createTaskDto' + createTaskDto.title,
+            createTaskDto.description,
+            user,
+        );
         return this.tasksService.createTask(createTaskDto, user);
     }
 
